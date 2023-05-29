@@ -63,8 +63,8 @@ int main(int argc, char *argv[]) {
 }
 
 ```
-I know this doesn't belong here but anyway.
 
+I know this doesn't belong here but anyway.\
 **Scenes should be created inside scopes for auto deletion**
 
 **`void Quit();`** does the clean up. should be at the end of `main` function.
