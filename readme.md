@@ -27,18 +27,18 @@ There is no installation just download the source code or execute the following 
 \
 **`bool AST::isFullscreen;`** see ``void fullscreen(bool);``
 
-**`std::unordered_map<int, bool> AST::keys;`** see [Event Handling]()
+**`std::unordered_map<int, bool> AST::keys;`** see [Event Handling](#event-handling)
 
 **`std::string AST::instruction;`** Scene management is done using classes and it is recommanded to not create a Scene within a Scene so you can set this to a instruction that you may use in a condition in main.cpp for handling which Scene to load or to quit.
 
 \
 **`void AST::Init(std::string);`** creates a maximized window with the title given and a renderer with the size of 1980x1080.
 
-**`void HandleEv(SDL_Event);`** see [Event Handling]()
+**`void HandleEv(SDL_Event);`** see [Event Handling](#event-handling)
 
 \
 **`void Render(Scene&);`** takes a screen and renders it. uses `while(AST::loop)`, inside it, it creates `SDL_Event`, clears `AST::keys` using `keys.clear();`.
-then uses `while (SDL_PollEvent(&event))` and calls the given Scene's event function with the event. (see [Event Handling]() for more information.) **After `AST::loop` is set to false (most likely by Scene's event function) the Scene will be deleted.**
+then uses `while (SDL_PollEvent(&event))` and calls the given Scene's event function with the event. (see [Event Handling](#event-handling) for more information.) **After `AST::loop` is set to false (most likely by Scene's event function) the Scene will be deleted.**
 
 **Example**
 ```cpp
@@ -102,7 +102,7 @@ This is supposed to be in `Scenes/Scenes.h`. you may remove `void event(SDL_Even
 
 **`void loop();`** does nothing so should be overrided in sub class. stuff like `SpriteManager::draw(AST::Rect)` is supposed to be here.
 
-**`void event(SDL_Event&);`** sets `AST::loop` to false on `SDL_QUIT` but should be overrided in sub class for more functionality, see [Event Handling]()
+**`void event(SDL_Event&);`** sets `AST::loop` to false on `SDL_QUIT` but should be overrided in sub class for more functionality, see [Event Handling](#event-handling)
 
 ### Rect Struct
 ```cpp
