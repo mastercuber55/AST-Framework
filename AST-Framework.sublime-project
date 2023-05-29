@@ -1,0 +1,20 @@
+{
+	"folders":
+	[
+		{
+			"file_exclude_patterns":
+			[
+				"*.dev",
+				"*.sublime-project",
+				"*.rc",
+				"*.res",
+				"*.out",
+				"*.layout",
+				"*.ico",
+				"*_private.h",
+				"*.ttf"
+			],
+			"path": "."
+		}
+	]
+}
