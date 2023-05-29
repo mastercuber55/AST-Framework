@@ -176,6 +176,11 @@ Scene_Name::~Scene_Name() {/*Code*/}
 **`bool draw(AST::Rect rect)`** draws any type of `AST::Rect` to `AST::ren`. uses the three functions from above.
 
 **`void free()`** called by the base class `Scene` to free the memory taken by `SpriteManager` when deconstructing. Its unlikely that you would be using it.
+
+### Macro
+
+**`SCENE`** takes a string and appends the Scene's resources folder's path as prefix. most likely used in `SpriteManager::load`
+
 ## License
 
 [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/)
