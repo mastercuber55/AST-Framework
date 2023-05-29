@@ -2,15 +2,16 @@
 #include "Scenes/Scenes.h"
 
 int main(int argc, char *argv[]) {
-	AST::Init("InfiWorlds2");
+	AST::Init("WINDOW TITLE HERE");
 	
-	// {
-	// 	Scene_Title TitleScene;
-	// 	AST::Render(TitleScene);
-	// }
 	{
-		Scene_Game GameScene;
-		AST::Render(GameScene);
+		Scene_Name NameScene;
+		AST::Render(NameScene);
+	}
+
+	if(AST::instruction == "Something") {
+		Scene_Name NameScene;
+		AST::Render(NameScene);
 	}
 
 	AST::Quit();

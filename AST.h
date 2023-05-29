@@ -20,18 +20,18 @@ namespace AST {
 	extern int grid;
 	extern bool loop;
 	extern bool isFullscreen;
-	extern std::unordered_map<std::string, bool> keys;
+	extern std::unordered_map<int, bool> keys;
 	extern std::string instruction;
 
-	void Init(std::string title, int width = 32 * 42, int height = 32 * 24); 
+	void Init(std::string title); 
 
 	void HandleEv(SDL_Event& event);
 
 	class Scene {
 		public:
 			Scene();
-			virtual void loop(SDL_Point& mouse);
-			virtual void event(SDL_Event& event, SDL_Point& mouse);
+			virtual void loop();
+			virtual void event(SDL_Event& event);
 			~Scene();
 	};
 

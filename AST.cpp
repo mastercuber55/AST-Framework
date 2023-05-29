@@ -10,14 +10,29 @@ namespace AST {
 	int grid = 1;
 	bool loop;
 	bool isFullscreen = false;
-	std::unordered_map<std::string, bool> keys;
+	std::unordered_map<int, bool> keys;
 	std::string instruction;
 
-	void Init(std::string title, int width, int height) {
+	void Init(std::string title) {
+	    SDL_Init(SDL_INIT_EVERYTHING);
 
-		SDL_Init(SDL_INIT_EVERYTHING);
-		win = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, 0);
-		ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC);
+	    win = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0, SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED);
+	    ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC);
+	    // SDL_RenderSetIntegerScale(ren, SDL_TRUE);
+
+	    SDL_SetWindowResizable(win, SDL_FALSE);
+
+	    SDL_RenderSetLogicalSize(ren, 1920, 1080);
+
+	    float scaleX, scaleY;
+	    SDL_Rect windowRect;
+	    SDL_GetWindowSize(win, &windowRect.w, &windowRect.h);
+
+	    scaleX = static_cast<float>(windowRect.w) / 1920;
+	    scaleY = static_cast<float>(windowRect.h) / 1080;
+
+	    SDL_RenderSetScale(ren, scaleX, scaleY);
+
 	}
 
 	void HandleEv(SDL_Event & event) {
@@ -31,48 +46,32 @@ namespace AST {
 			AST::Mouse.y *= AST::grid;
 
 			if (event.type == SDL_MOUSEBUTTONDOWN) {
-				std::string to;
-				switch (event.button.button) {
-				case SDL_BUTTON_LEFT:
-					to = "L";
-					break;
-				case SDL_BUTTON_MIDDLE:
-					to = "M";
-					break;
-				case SDL_BUTTON_RIGHT:
-					to = "R";
-					break;
-				}	
-				keys[to + "MB"] = true;
+				return;
+				keys[event.button.button] = true;
 			}
 
 			//Key Handling
 
 
-			if (event.type == SDL_QUIT) {
-				keys["SDL_QUIT"] = true;
-				return;
-			}
-
+			keys[event.type] = true;
 			// https://wiki.libsdl.org/SDL2/SDL_Keycode
-			if (event.type == SDL_KEYDOWN) keys[SDL_GetKeyName(event.key.keysym.sym)] = true;
+			if (event.type == SDL_KEYDOWN) keys[event.key.keysym.sym] = true;
 	}
 
 	Scene::Scene() {
 		AST::loop = true;
 	}
 
-	void Scene::loop(SDL_Point& mouse) {
+	void Scene::loop() {
 		
 	}
 
-	void Scene::event(SDL_Event& event, SDL_Point& mouse) {
+	void Scene::event(SDL_Event& event) {
 		AST::HandleEv(event);
-		if (AST::keys["SDL_QUIT"]) AST::loop = false;
+		if (AST::keys[SDL_QUIT]) AST::loop = false;
 	}
 
 	Scene::~Scene() {
-		AST::loop = false;
 		SpriteManager::free();
 	}
 
@@ -81,10 +80,10 @@ namespace AST {
 			//Event Handling
 			SDL_Event event;
 			keys.clear();
-			while (SDL_PollEvent(&event)) scene.event(event, Mouse);
+			while (SDL_PollEvent(&event)) scene.event(event);
 			//Rendering
 			SDL_RenderClear(ren);
-			scene.loop(Mouse);
+			scene.loop();
 			SDL_RenderPresent(ren);
 		}
 	}
@@ -117,8 +116,14 @@ namespace AST {
 	void Rect::init(SDL_Rect rect) {
 		x = rect.x;
 		y = rect.y;
-		w = rect.w == -1 ? 1280 : rect.w;
-		h = rect.h == -1 ? 720 : rect.h;
+
+		if(rect.w == -1) {
+			w = 1920;
+		} else w = rect.w;
+		if(rect.w == -1) {
+			h = 1080;
+		} else h = rect.h;
+
 		angle = 0.0;
 	}
 
@@ -147,34 +152,27 @@ namespace SpriteManager {
 	bool debug;
 
 	bool load(std::string keyword, std::string file) {
-		for (auto sprite : sprites) if (sprite.second == keyword && sprite.first != nullptr) return true;
+	    for (auto sprite : sprites)
+	        if (sprite.second == keyword && sprite.first != nullptr)
+	            return true;
 
-		SDL_Surface * temp = IMG_Load(file.c_str());
+	    SDL_Texture* texture = IMG_LoadTexture(AST::ren, ("res/" + file).c_str());
+	    if (texture == nullptr)
+	        return false;
 
-		if (temp != nullptr) {
-			sprites.push_back({
-				SDL_CreateTextureFromSurface(AST::ren, temp),
-				keyword
-			});
-			SDL_FreeSurface(temp);
-			return true;
-		}
-
-		return false;
+	    sprites.push_back({ texture, keyword });
+	    return true;
 	}
 
 	bool load(std::string keyword, std::string sheetFile, SDL_Rect spriteRect) {
-	    
+	    for (auto sprite : sprites) {
+	        if (sprite.second == keyword && sprite.first != nullptr)
+	            return true;
+	    }
 
-	    for (auto sprite : sprites) if (sprite.second == keyword && sprite.first != nullptr) return true;
-
-	    SDL_Surface * sheetSurface = IMG_Load(("res/" + sheetFile).c_str());
-	    if (sheetSurface == nullptr) return false;
-
-	    SDL_Texture * sheetTexture = SDL_CreateTextureFromSurface(AST::ren, sheetSurface);
-	    SDL_FreeSurface(sheetSurface);
-
-	    if (sheetTexture == nullptr) return false;
+	    SDL_Texture* sheetTexture = IMG_LoadTexture(AST::ren, ("res/" + sheetFile).c_str());
+	    if (sheetTexture == nullptr)
+	        return false;
 
 	    SDL_Texture* spriteTexture = SDL_CreateTexture(AST::ren, SDL_PIXELFORMAT_UNKNOWN, SDL_TEXTUREACCESS_TARGET, spriteRect.w, spriteRect.h);
 	    if (spriteTexture == nullptr) {
@@ -186,6 +184,8 @@ namespace SpriteManager {
 	    SDL_RenderCopy(AST::ren, sheetTexture, &spriteRect, nullptr);
 	    SDL_SetRenderTarget(AST::ren, nullptr);
 	    sprites.push_back({ spriteTexture, keyword });
+
+	    SDL_DestroyTexture(sheetTexture);
 
 	    return true;
 	}

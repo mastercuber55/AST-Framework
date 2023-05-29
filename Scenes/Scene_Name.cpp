@@ -3,6 +3,7 @@
 Scene_Name::Scene_Name() : Background(0, 0, -1, -1, "SomeKeyword") { 
     SpriteManager::load("SomeKeyword", SCENE("test/AnyImageInsideTheAssignedFolder.png")); 
     SpriteManager::load("SomeKeyword2", SCENE("test/AnySpriteSheetInsideTheAssignedFolder.png"), {64, 64, 32, 32}); 
+    AST::instruction = "Something";
 } 
  
 void Scene_Name::loop() { 
