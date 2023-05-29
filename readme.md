@@ -64,15 +64,13 @@ int main(int argc, char *argv[]) {
 
 ```
 
-\
-I know this doesn't belong here but anyway.
-**Scenes should be created inside scopes for auto deletion**
-
 **`void Quit();`** does the clean up. should be at the end of `main` function.
 
 ### Scene class
 
 Scene Class is a self handling class that is auto destroyed once work is done i.e. `AST::loop` is set to `false` somewhere inside the class (event function most likely).
+
+**Scenes should be created inside scopes for auto deletion** 
 
 ```cpp
 class Scene {
