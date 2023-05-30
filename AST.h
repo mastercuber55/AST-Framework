@@ -5,6 +5,7 @@
     std::string(__FILE__).find_last_of(".") - std::string(__FILE__).find_last_of("/\\") - 1) \
     + "/" + (param))
 
+
 #include <SDL.h>
 #include <SDL_image.h>
 #include <string>
@@ -18,14 +19,13 @@ namespace AST {
 	extern SDL_Renderer* ren;
 	extern SDL_Point Mouse;
 	extern int grid;
+	extern int FPS;
 	extern bool loop;
 	extern bool isFullscreen;
 	extern std::unordered_map<int, bool> keys;
-	extern std::string instruction;
+	extern int code;
 
-	void Init(std::string title); 
-
-	void HandleEv(SDL_Event& event);
+	void Init(std::string title);
 
 	class Scene {
 		public:
@@ -35,7 +35,7 @@ namespace AST {
 			~Scene();
 	};
 
-	void Render(Scene& scene);
+	void Render(Scene & scene);
 	void Quit();
 
 	struct Rect : public SDL_Rect {
@@ -43,13 +43,14 @@ namespace AST {
 		SDL_Color start;
 		SDL_Color end;
 		double angle;
-		std::string type;
+		int type;
 
-		Rect(SDL_Rect rect, std::string texture);
-		Rect(SDL_Rect rect, SDL_Color color);
-		Rect(SDL_Rect rect, SDL_Color start, SDL_Color end);
-	private:
-		void init(SDL_Rect rect);
+		virtual Rect(SDL_Rect rect, std::string texture);
+		virtual Rect(SDL_Rect rect, SDL_Color color);
+		virtual Rect(SDL_Rect rect, SDL_Color start, SDL_Color end);
+
+	protected:
+		virtual void init(SDL_Rect rect);
 	};
 
 	bool inRange(int num, int min, int max);

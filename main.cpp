@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
 		AST::Render(NameScene);
 	}
 
-	if(AST::instruction == "Something") {
+	if(AST::code == 42) {
 		Scene_Name NameScene;
 		AST::Render(NameScene);
 	}

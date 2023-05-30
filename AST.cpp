@@ -8,17 +8,17 @@ namespace AST {
 	SDL_Renderer* ren;
 	SDL_Point Mouse;
 	int grid = 1;
+	int FPS = 60;
 	bool loop;
 	bool isFullscreen = false;
 	std::unordered_map<int, bool> keys;
-	std::string instruction;
+	int code;
 
 	void Init(std::string title) {
 	    SDL_Init(SDL_INIT_EVERYTHING);
 
 	    win = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0, SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED);
 	    ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC);
-	    // SDL_RenderSetIntegerScale(ren, SDL_TRUE);
 
 	    SDL_SetWindowResizable(win, SDL_FALSE);
 
@@ -32,32 +32,7 @@ namespace AST {
 	    scaleY = static_cast<float>(windowRect.h) / 1080;
 
 	    SDL_RenderSetScale(ren, scaleX, scaleY);
-
 	}
-
-	void HandleEv(SDL_Event & event) {
-			bool down;
-
-			SDL_GetMouseState(&AST::Mouse.x, &AST::Mouse.y);
-
-			AST::Mouse.x /= AST::grid;
-			AST::Mouse.y /= AST::grid;
-			AST::Mouse.x *= AST::grid;
-			AST::Mouse.y *= AST::grid;
-
-			if (event.type == SDL_MOUSEBUTTONDOWN) {
-				return;
-				keys[event.button.button] = true;
-			}
-
-			//Key Handling
-
-
-			keys[event.type] = true;
-			// https://wiki.libsdl.org/SDL2/SDL_Keycode
-			if (event.type == SDL_KEYDOWN) keys[event.key.keysym.sym] = true;
-	}
-
 	Scene::Scene() {
 		AST::loop = true;
 	}
@@ -67,7 +42,6 @@ namespace AST {
 	}
 
 	void Scene::event(SDL_Event& event) {
-		AST::HandleEv(event);
 		if (AST::keys[SDL_QUIT]) AST::loop = false;
 	}
 
@@ -75,16 +49,36 @@ namespace AST {
 		SpriteManager::free();
 	}
 
-	void Render(Scene& scene) {
+	void Render(Scene & scene) {
 		while (AST::loop) {
+			Uint32 frameStart = SDL_GetTicks();
+
 			//Event Handling
 			SDL_Event event;
 			keys.clear();
-			while (SDL_PollEvent(&event)) scene.event(event);
+			while (SDL_PollEvent(&event)) {
+				SDL_GetMouseState(&AST::Mouse.x, &AST::Mouse.y);
+
+				AST::Mouse.x /= AST::grid;
+				AST::Mouse.y /= AST::grid;
+				AST::Mouse.x *= AST::grid;
+				AST::Mouse.y *= AST::grid;
+
+				keys[event.type] = true;
+				if (event.type == SDL_MOUSEBUTTONDOWN) keys[event.button.button] = true;
+				if (event.type == SDL_KEYDOWN) keys[event.key.keysym.sym] = true;
+				
+				scene.event(event);
+			}
+
 			//Rendering
 			SDL_RenderClear(ren);
 			scene.loop();
 			SDL_RenderPresent(ren);
+
+			Uint32 frameTime = SDL_GetTicks() - frameStart;
+
+			if (frameTime < 1000/FPS) SDL_Delay(1000/FPS - frameTime);
 		}
 	}
 
@@ -97,20 +91,20 @@ namespace AST {
 	Rect::Rect(SDL_Rect rect, std::string texture) {
 		init(rect);
 		this->texture = texture;
-		this->type = "TRect";
+		this->type = 0;
 	}
 
 	Rect::Rect(SDL_Rect rect, SDL_Color color) {
 		init(rect);
 		start = color;
-		this->type = "CRect";
+		this->type = 1;
 	}
 
 	Rect::Rect(SDL_Rect rect, SDL_Color start, SDL_Color end) {
 		init(rect);
 		this->start = start;
 		this->end = end;
-		this->type = "GRect";
+		this->type = 2;
 	}
 
 	void Rect::init(SDL_Rect rect) {
@@ -127,6 +121,7 @@ namespace AST {
 		angle = 0.0;
 	}
 
+	//UTILS
 	bool inRange(int num, int min, int max) {
 		return (num >= min && num <= max);
 	}
@@ -137,6 +132,7 @@ namespace AST {
 
 	void fullscreen(bool yes) {
 		SDL_SetWindowFullscreen(win, yes ? SDL_WINDOW_FULLSCREEN : 0);
+		AST::isFullscreen = yes;
 	}
 
 	void setTimeout(std::function<void()> function, int ms) {
@@ -145,11 +141,11 @@ namespace AST {
 			function();
 		}).detach();
 	}
+
 } // namespace AST
 
 namespace SpriteManager {
 	std::vector<std::pair<SDL_Texture*, std::string>> sprites;
-	bool debug;
 
 	bool load(std::string keyword, std::string file) {
 	    for (auto sprite : sprites)
@@ -196,16 +192,16 @@ namespace SpriteManager {
 
 		for (auto sprite : sprites) {
 			if (sprite.second == rect.texture) {
-				SDL_RenderCopy(AST::ren, sprite.first, nullptr, &rect);
-				// SDL_RenderCopyEx(AST::ren, sprite.first, nullptr, &rect, rect.angle, nullptr, SDL_FLIP_NONE);
+				// SDL_RenderCopy(AST::ren, sprite.first, nullptr, &rect);
+				SDL_RenderCopyEx(AST::ren, sprite.first, nullptr, &rect, rect.angle, nullptr, SDL_FLIP_NONE);
 				found = true;
 				break;
 			}
 		}
 
-		if (!found && debug) {
-			std::cout << "Texture " << rect.texture << " was not found!" << std::endl;
-		}
+		#ifdef SPRITE_MANAGER_DEBUGGING
+		if (!found) std::cout << "Texture " << rect.texture << " was not found!" << std::endl;
+		#endif
 
 		return found;
 	}
@@ -239,14 +235,14 @@ namespace SpriteManager {
 	}
 
 	bool draw(AST::Rect rect) {
-		if (rect.type == "TRect") {
+		if (rect.type == 0) {
 			return drawTRect(rect);
 		}
-		else if (rect.type == "CRect") {
+		else if (rect.type == 1) {
 			drawCRect(rect);
 			return true;
 		}
-		else if (rect.type == "GRect") {
+		else if (rect.type == 2) {
 			drawGRect(rect);
 			return true;
 		}
@@ -256,9 +252,7 @@ namespace SpriteManager {
 	}
 
 	void free() {
-		for (auto sprite : sprites) {
-			SDL_DestroyTexture(sprite.first);
-		}
+		for (auto& sprite : sprites) SDL_DestroyTexture(sprite.first);
 		sprites.clear();
 	}
 } // namespace SpriteManager
