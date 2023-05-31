@@ -61,6 +61,25 @@ void AST::Render(Scene & SceneToRender);
 // Info: Final Clean Up
 // Example: AST::Quit();
 void AST::Quit(void);
+
+// Info: Checks if a number is between two numbers.
+// Example: inRange(5, 0, 10); ( true )
+bool AST::inRange(int num, int min, int max);
+
+// Info: Checks if AST::Mouse is hovering the given rect. If mouse button click is checked before calling this function that it will also work for checking if the given rect is clicked by the mouse.
+// Example: if(AST::keys[SDL_BUTTON_LEFT] && AST::hovering(rect)) doSomething();
+bool AST::hovering(SDL_Rect rect);
+
+// Info: sets fullscreen according to given param.
+// Example: AST::fullscreen(!AST::isFullscreen); 
+void AST::fullscreen(bool yes);
+
+// Info: from javascript. ( non blocking SDL_Delay() )
+// Example: 
+// AST::setTimeout([&someThingToCapture](){
+//	someThingToCapture.doSomething();
+// }, 1000) 
+void AST::setTimeout(std::function<void()> function, int ms);
 ```
 #### MACRO
 ```cpp
