@@ -135,7 +135,30 @@ The `SpriteManager` namespace provides functionality for managing sprites and re
 - The `draw` function selects the appropriate rendering function based on the type of the `rect` object, either rendering a textured rectangle (if `AST_TEXTURE` is defined), a solid color-filled rectangle, or a gradient color-filled rectangle.
 - The `free` function frees all the loaded textures in the `sprites` vector.
 
+Namespace: AudioManager
 
+The AudioManager namespace provides functionality for managing and playing audio files using SDL Mixer. The following variables and functions are available within this namespace:
+
+#### Variables:
+
+- `chunks`: A vector of pairs storing loaded audio chunks (sound effects) and corresponding file names.
+- `musics`: A vector of pairs storing loaded music tracks and corresponding file names.
+
+#### Functions:
+
+- `play(std::string fileName, bool chunk)`: Plays an audio file specified by `fileName`. If `chunk` is `true`, the file is treated as a sound effect and played using `Mix_PlayChannel` with a new channel assigned. If `chunk` is `false`, the file is treated as music and played using `Mix_PlayMusic` with looping enabled. The function checks if the audio file is already loaded and plays it if found. If the file is not loaded, it is loaded and then played.
+- `stop()`: Stops the currently playing music using `Mix_HaltMusic`.
+- `free()`: Frees all the loaded audio chunks and music tracks in the `chunks` and `musics` vectors, respectively.
+
+**Note:**
+
+- The `play` function allows playing both sound effects and music tracks.
+- For sound effects, the function checks if the corresponding audio chunk is already loaded and plays it if found. If not, the chunk is loaded and then played.
+- For music tracks, the function checks if the corresponding music track is already loaded and plays it if found. If not, the track is loaded and then played with looping enabled.
+- The `free` function frees all the loaded audio chunks and music tracks in the `chunks` and `musics` vectors, respectively.
+- To stop the currently playing music, you can call `Mix_HaltMusic()`.
+
+Please note that you need to have SDL Mixer and its initialization code properly set up in your project for the AudioManager namespace to work correctly.
 
 ## Usage/Examples
 **main.cpp**

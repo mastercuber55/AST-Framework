@@ -1360,6 +1360,10 @@ namespace AST {
 	    scaleY = static_cast<float>(windowRect.h) / 1080;
 
 	    SDL_RenderSetScale(ren, scaleX, scaleY);
+#ifdef AST_AUDIO
+	    Mix_Init(MIX_INIT_OGG);
+	    Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 4096);
+#endif
 #ifdef AST_PHYSICS
 	    world = SKR_CreateRectWorld(WorldGravity, WorldAirFrictionCoefficient, WorldGameType);
 #endif
@@ -1602,3 +1606,46 @@ namespace SpriteManager {
 	}
 
 } // namespace SpriteManager
+
+#ifdef AST_AUDIO
+namespace AudioManager {
+	std::vector<std::pair<Mix_Chunk*, std::string>> chunks;
+	std::vector<std::pair<Mix_Music*, std::string>> musics;
+
+	void play(std::string fileName, bool chunk) {
+		bool found = false;
+
+		if(chunk) {
+			for(auto& chunk : chunks) if(chunk.second == fileName) {
+				found = true;
+				Mix_PlayChannel(-1, chunk.first, 0);
+				break;
+			}
+			if(!found) {
+				chunks.push_back({
+					Mix_LoadWAV(("Resources/SFX/" + fileName).c_str()),
+					fileName
+				});
+				Mix_PlayChannel(-1, chunks[chunks.size() - 1].first, 0);
+			}
+		} else {
+			for(auto& music : musics) if(music.second == fileName) {
+				found = true;
+				Mix_PlayMusic(music.first, -1);
+				break;
+			}
+			if(!found) {
+				musics.push_back({
+					Mix_LoadMUS(("Resources/SFX/" + fileName).c_str()),
+					fileName
+				});
+				Mix_PlayMusic(musics[musics.size() - 1].first, 0);
+			}
+		}
+	}
+	void free() {
+		for(auto& chunk : chunks) Mix_FreeChunk(chunk.first);
+		for(auto& music : musics) Mix_FreeMusic(music.first);
+	}
+}
+#endif

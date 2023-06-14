@@ -1,9 +1,14 @@
 #pragma once
 
 #include <SDL.h>
+
 #ifdef AST_TEXTURE
 	#include <SDL_image.h>
 #endif
+#ifdef AST_AUDIO
+	#include <SDL_mixer.h>
+#endif
+
 #include <string>
 #include <vector>
 #include <functional>
@@ -200,3 +205,12 @@ namespace SpriteManager {
 	bool draw(AST::Rect rect);
 	
 } // namespace SpriteManager
+
+#ifdef AST_AUDIO
+namespace AudioManager {
+	extern std::vector<std::pair<Mix_Chunk*, std::string>> chunks;
+	extern std::vector<std::pair<Mix_Music*, std::string>> musics;
+	void play(std::string file, bool chunk = true);
+	void free();
+}
+#endif
