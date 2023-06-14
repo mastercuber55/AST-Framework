@@ -9,7 +9,7 @@ To use the AST-Framework in your project, follow these steps:
 1. Clone the repository to your local machine:
 
    ```bash
-   git clone https://github.com/your-username/your-repo.git
+   git clone https://github.com/mastercuber55/AST-Framework.git
    ```
 
 2. Copy the `AST.h` and `AST.cpp` files from the AST-Framework repository and include them in your `main.cpp` file.
