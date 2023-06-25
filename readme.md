@@ -46,9 +46,9 @@ Feel free to enable or disable these features based on your project's requiremen
 **The Physics Engine is taken from [SKR Framework](https://github.com/SUKRUCIRIS/SKR)**
 ##  Documentation
 
-[Namespace AST](./docs/readme.md)
-[Namespace AudioManager](./docs/NS-AudioManager.md)
-[Namespace SpriteManager](./docs/NS-SpriteManager.md)
+- [Namespace AST](./docs/readme.md)
+- [Namespace AudioManager](./docs/NS-AudioManager.md)
+- [Namespace SpriteManager](./docs/NS-SpriteManager.md)
 
 ## Acknowledgements
 
