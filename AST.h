@@ -2,11 +2,17 @@
 
 #include <SDL.h>
 
+#ifdef AST_TEXT
+	#include <SDL_ttf.h>
 #ifdef AST_TEXTURE
 	#include <SDL_image.h>
 #endif
+#endif
 #ifdef AST_AUDIO
 	#include <SDL_mixer.h>
+#endif
+#ifdef AST_NET
+	#include <SDL_net.h>
 #endif
 
 #include <string>
@@ -19,198 +25,222 @@ using std::max;
 using std::min;
 
 #ifdef AST_PHYSICS
-// ############### SKR_Physics.h Start ############### 
-typedef struct SKR_StaticRect SKR_StaticRect;
-
-typedef struct SKR_KinematicRect SKR_KinematicRect;
-
-typedef struct SKR_DynamicRect SKR_DynamicRect;
-
-typedef struct SKR_RectWorld SKR_RectWorld;
-
-typedef enum { SKR_SIDESCROLLER, SKR_ISOMETRIC }SKR_GAMETYPE;
-
-
-int SKR_IntersectRectLine(SDL_FRect* Rect, float* x1, float* y1, float* x2, float* y2);//returns 1 if the rect and the line are intersected, returns 0 otherwise
-
-int SKR_IntersectRectRect(SDL_FRect* Rect1, SDL_FRect* Rect2);//returns 1 if the rects are intersected, returns 0 otherwise
-
-
-SKR_RectWorld* SKR_CreateRectWorld(float Gravity, float AirFrictionCoefficient, SKR_GAMETYPE GameType);//creates a SKR world to hold static kinematic and dynamic rects' data//you must define your gametype here SKR_SIDESCROLLER or SKR_ISOMETRIC, when you set this SKR_ISOMETRIC gravity will be 0 regardless of your input
-
-void SKR_SetGravity(SKR_RectWorld* World, float Gravity);
-
-float SKR_GetGravity(SKR_RectWorld* World);
-
-void SKR_SetAirFriction(SKR_RectWorld* World, float AirFrictionCoefficient);
-
-float SKR_GetAirFriction(SKR_RectWorld* World);
-
-void SKR_DestroyRectWorld(SKR_RectWorld* World);//this frees all the memory which is retained by the world and all the rects which are created in it
-
-
-SKR_StaticRect* SKR_CreateStaticRect(SKR_RectWorld* World, SDL_FRect* Position);//static rects aren't affected physically by other rectangles and gravity, they dont have velocity, you can use them to make stationary platforms
-
-void SKR_DestroyStaticRect(SKR_RectWorld* World, SKR_StaticRect* StaticRect);//frees the memory which is retained by the static rect and deletes it from its world
-
-SDL_FRect* SKR_GetPositionStaticRect(SKR_StaticRect* StaticRect);
-
-int SKR_GetStaticRectNumber(SKR_RectWorld* World);//returns how many static rects there are in the world
-
-
-SKR_KinematicRect* SKR_CreateKinematicRect(SKR_RectWorld* World, SDL_FRect* Position);//kinematic rects aren't affected physically by other rectangles and gravity, they do have velocity, you can use them to make moving platforms
-
-void SKR_DestroyKinematicRect(SKR_RectWorld* World, SKR_KinematicRect* KinematicRect);//frees the memory which is retained by the kinematic rect and deletes it from its world
-
-SDL_FRect* SKR_GetPositionKinematicRect(SKR_KinematicRect* KinematicRect);
-
-int SKR_GetKinematicRectNumber(SKR_RectWorld* World);//returns how many kinematic rects there are in the world
-
-void SKR_SetXVelocityKinematicRect(SKR_KinematicRect* KinematicRect, float Xspeed);
-
-void SKR_SetYVelocityKinematicRect(SKR_KinematicRect* KinematicRect, float Yspeed);
-
-float SKR_GetXVelocityKinematicRect(SKR_KinematicRect* KinematicRect);
-
-float SKR_GetYVelocityKinematicRect(SKR_KinematicRect* KinematicRect);
-
-void SKR_AnimateKinematicRect(SKR_KinematicRect* KinematicRect, float X1, float Y1, float X2, float Y2, float Velocity);//you can use this function to make a moving platform easily, also you must put this function in your game loop like SKR_SimulateWorld function
-
-void SKR_StopAnimatingKinematicRect(SKR_KinematicRect* KinematicRect);//you should use this function to stop the kinematic rect after it is animated by SKR_AnimateKinematicRect function, also if you want to apply another animation on same kinematic rect, you must use this function between SKR_AnimateKinematicRect functions 
-
-
-SKR_DynamicRect* SKR_CreateDynamicRect(SKR_RectWorld* World, SDL_FRect* Position, float Mass, float FrictionCoefficient, float GravityMultiplier);//dynamic rects are affected physically by other rectangles and gravity, you can set their velocities or apply forces
-
-float SKR_GetFriction(SKR_DynamicRect* DynamicRect);
-
-void SKR_SetFriction(SKR_DynamicRect* DynamicRect, float FrictionCoefficient);
-
-float SKR_GetGravityMultiplier(SKR_DynamicRect* DynamicRect);
-
-void SKR_SetGravityMultiplier(SKR_DynamicRect* DynamicRect, float GravityMultiplier);
-
-void SKR_DestroyDynamicRect(SKR_RectWorld* World, SKR_DynamicRect* DynamicRect);//frees the memory which is retained by the dynamic rect and deletes it from its world
-
-SDL_FRect* SKR_GetPositionDynamicRect(SKR_DynamicRect* DynamicRect);
-
-int SKR_GetDynamicRectNumber(SKR_RectWorld* World);//returns how many dynamic rects there are in the world
-
-void SKR_SetXVelocityDynamicRect(SKR_DynamicRect* DynamicRect, float Xspeed);
-
-void SKR_SetYVelocityDynamicRect(SKR_DynamicRect* DynamicRect, float Yspeed);
-
-float SKR_GetXVelocityDynamicRect(SKR_DynamicRect* DynamicRect);
-
-float SKR_GetYVelocityDynamicRect(SKR_DynamicRect* DynamicRect);
-
-float SKR_GetMassDynamicRect(SKR_DynamicRect* DynamicRect);
-
-void SKR_SetMassDynamicRect(SKR_DynamicRect* DynamicRect, float Mass);
-
-void SKR_ApplyForceX(SKR_DynamicRect* DynamicRect, float Force);//applying force means you are adding force to the forces which are already applying
-
-void SKR_ApplyForceY(SKR_DynamicRect* DynamicRect, float Force);
-
-void SKR_SetForceX(SKR_DynamicRect* DynamicRect, float Force);//setting force means, you set the force this number regardless of previously applied forces
-
-void SKR_SetForceY(SKR_DynamicRect* DynamicRect, float Force);
-
-float SKR_GetForceX(SKR_DynamicRect* DynamicRect);
-
-float SKR_GetForceY(SKR_DynamicRect* DynamicRect);
-
-int SKR_IsOnground(SKR_DynamicRect* DynamicRect);//this function returns 1 if the dynamic rect is on something, returns 0 otherwise. this function can be helpful in situations like deciding if a character can jump in your side scroller game, will return 0 always in an isometric game
-
-
-void SKR_SimulateWorld(SKR_RectWorld* World, float Milliseconds);//simulates the world for some time, you must put this in your main game loop. for example your one frame/cycle takes 15 milliseconds, so you should write it like SKR_SimulateWorld(world, 15);
-
+namespace Physics {
+	namespace Rects {
+		struct Static;
+		struct Kinematic;
+		struct Dynamic;
+	}
+}
 #endif
-// ############### SKR_Physics.h End ############### 
-
+// ############### Namespace AST Begin ###############
 namespace AST {
-
+// ############### Variables Begin ###############
 	extern SDL_Window* win;
 	extern SDL_Renderer* ren;
 	extern SDL_Point Mouse;
-	extern int grid;
 	extern int FPS;
 	extern bool loop;
 	extern bool isFullscreen;
+	extern std::unordered_map<int, bool> events;
 	extern std::unordered_map<int, bool> keys;
 	extern int code;
-
-#ifdef AST_PHYSICS
-    extern SKR_RectWorld * world;
-#endif
-
-
+	extern std::function<void(SDL_Event&)> EventHandler;
+// ############### Variables End ###############
+// ############### Utility Functions Begin ###############
+	SDL_Color RandomColor();
+	bool InRange(int num, int min, int max);
+	bool Hovering(SDL_FRect);
+	bool Clicked(SDL_FRect, int key = SDL_BUTTON_LEFT);
+	void Fullscreen(bool = !AST::isFullscreen);
+	void SetTimeout(std::function<void()> function, int ms);
+// ############### Utility Functions End ###############
+// ############### Class Scene Begin ###############
 	class Scene {
-		public:
-			Scene();
-			virtual void loop();
-			virtual void event(SDL_Event& event);
-			~Scene();
+	public:
+		Scene();
+		virtual void loop();
+		virtual void event(SDL_Event& event);
+		~Scene();
 	};
+// ############### Class Scene End ###############
+// ############### Class Text Begin ###############
+#ifdef AST_TEXT
+	class Text : public SDL_Rect {
+		SDL_Texture * texture;
+		public:
+			double angle;
+
+			Text();
+			~Text();
+
+			void set(TTF_Font*, std::string text, SDL_Color = AST::RandomColor());
+			void draw();
+			void free();
+	};
+#endif
+// ############### Class Text End ###############
+// ############### Class Rect Begin ###############
+	class Rect : public SDL_FRect {
+		void Init(SDL_FRect winrect);
+	public:
+		AST::Rect * layer = nullptr;
+#ifdef AST_TEXT
+		AST::Text * text = nullptr;
+#endif
+		std::string texture;
+		bool filled;
+		SDL_Color color;
+		double angle;
 
 #ifdef AST_PHYSICS
-	void Init(std::string title, SDL_Rect rect, float WorldGravity, float WorldAirFrictionCoefficient, SKR_GAMETYPE WorldGameType);
-#else
-	void Init(std::string title, SDL_Rect rect);
+		Physics::Rects::Static * StaticRect;
+		Physics::Rects::Kinematic * KinematicRect;
+		Physics::Rects::Dynamic * DynamicRect;
 #endif
+
+		void initlayer(SDL_Color = AST::RandomColor());
+		Rect(SDL_FRect rect, std::string texture);
+		Rect(SDL_FRect rect, SDL_Color color = AST::RandomColor());
+		~Rect();
+	};
+// ############### Class Rect End ###############
+// ############### Basic Functions Begin ###############
+	void Init(std::string title, SDL_Rect rect = {
+		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, -1, -1
+	});
 	void Render(Scene & scene);
 	void Quit();
-
-	struct Rect : public SDL_FRect {
-		std::string texture;
-		SDL_Color start;
-		SDL_Color end;
-		int type;
-#ifndef AST_PHYSICS
-		double angle;
-#else
-		SKR_StaticRect * StaticRect;
-		SKR_DynamicRect * DynamicRect;
-		void Physics(float mass = 0.0, float friction = 0.0, float gravity = 0.0);
-#endif
-#ifdef AST_TEXTURE
-		Rect(SDL_FRect rect, std::string texture);
-#endif
-		Rect(SDL_FRect rect, SDL_Color color);
-		Rect(SDL_FRect rect, SDL_Color start, SDL_Color end);
-		~Rect();
-
-		private: void Init(SDL_FRect rect);
-	};
-
-	bool inRange(int num, int min, int max);
-	bool hovering(SDL_FRect rect);
-	void fullscreen(bool yes);
-	void setTimeout(std::function<void()> function, int ms);
+// ############### Basic Functions End ###############
 } // namespace AST
-
+// ############### Namespace AST End ###############
+// ############### Namespace SpriteManager Begin ###############
 namespace SpriteManager {
 #ifdef AST_TEXTURE
-	extern std::vector<std::pair<SDL_Texture*, std::string>> sprites;
+	extern std::unordered_map<std::string, SDL_Texture*> Sprites;
 	
-	bool load(std::string keyword, std::string file);
-	bool load(std::string keyword, std::string sheetFile, SDL_Rect spriteRect);
+	bool Load(std::string keyword, std::string file);
+	bool Load(std::string keyword, std::string sheetFile, SDL_Rect spriteRect);
 
-	bool drawTRect(AST::Rect rect);
-
-	void free();
+	void Free();
 #endif
-	
-	void drawCRect(AST::Rect rect);
-	void drawGRect(AST::Rect rect);
-	bool draw(AST::Rect rect);
-	
+	bool Render(AST::Rect rect);
 } // namespace SpriteManager
+// ############### Namespace Physics Begin ###############
+#ifdef AST_PHYSICS
+namespace Physics {
+	// ############### Variables Begin ###############
+	extern float* xmax, * xmin, * ymax, * ymin;
 
+	extern float Xmax, Ymax;
+
+	extern float xmax2, ymax2, xmin2;
+
+	extern int loop, i;
+
+	extern SDL_FPoint a, b, c, d;
+
+	// ############### Variables End ###############
+	enum GAMETYPE {
+		SIDESCROLLER, ISOMETRIC
+	};
+	// ############### Namespace Rects Begin ###############
+	namespace Rects {
+
+		struct Static;
+		struct Kinematic;
+		struct Dynamic;
+
+		// ############### Structure World Begin ###############
+		struct World {
+			float gravity;
+			float airfriction;
+			GAMETYPE gametype;
+			Rects::Static* StaticRectList;
+			Rects::Kinematic* KinematicRectList;
+			Rects::Dynamic* DynamicRectList;
+
+			World(float AirFrictionCoefficient = 0.0, float Gravity = 0.0);
+			~World();
+
+			int GetStaticRectNumber();
+			int GetKinematicRectNumber();
+			int GetDynamicRectNumber();
+
+			void Simulate(float ms);
+		};
+		// ############### Structure World End ###############
+		// ############### Structure Static Begin ###############
+		struct Static {
+			SDL_FRect* position;
+			Rects::Static* sonraki;
+			World * world;
+
+			Static(World * world, SDL_FRect * Position); //static rects aren't affected physically by other rectangles and gravity, they dont have velocity, you can use them to make stationary platforms
+			~Static(); //frees the memory which is retained by the static rect and deletes it from its world
+		};
+		// ############### Sturcture Static End ###############
+		// ############### Structure Kinematic Begin ###############
+		struct Kinematic {
+			SDL_FRect* position;
+			SDL_FPoint velocity;
+			Rects::Kinematic* sonraki;
+			int boolean;
+			World * world;
+
+			Kinematic(World * world, SDL_FRect * Position); //kinematic rects aren't affected physically by other rectangles and gravity, they do have velocity, you can use them to make moving platforms
+			~Kinematic(); //frees the memory which is retained by the kinematic rect and deletes it from its world
+
+			void StartAnimating(float X1, float Y1, float X2, float Y2, float Velocity);//you can use this function to make a moving platform easily, also you must put this function in your game loop like SKR_SimulateWorld function
+			void StopAnimating();//you should use this function to stop the kinematic rect after it is animated by SKR_AnimateKinematicRect function, also if you want to apply another animation on same kinematic rect, you must use this function between SKR_AnimateKinematicRect functions 
+		};
+		// ############### Structure Kinematic Begin ###############
+		// ############### Structure Kinematic End ###############
+		struct Dynamic {
+			SDL_FRect* position;
+			float mass;
+			SDL_FPoint velocity;
+			float xk;
+			float yk;
+			SDL_FPoint force;
+			Rects::Dynamic* sonraki;
+			int isonground;
+			float friction;
+			int alt, ust, sol, sag;
+			float gravitymultiplier;
+			World * world;
+
+			Dynamic(World * world, SDL_FRect* Position, float Mass, float FrictionCoefficient, float GravityMultiplier);//dynamic rects are affected physically by other rectangles and gravity, you can set their velocities or apply forces
+			~Dynamic();//frees the memory which is retained by the dynamic rect and deletes it from its world
+		};
+		// ############### Structure Dynamic End ###############
+	}
+	// ############### Namespace Rects End ###############
+
+	int IntersectRectLine(SDL_FRect* Rect, float* x1, float* y1, float* x2, float* y2); //returns true if the rect and the line are intersected, returns false otherwise
+	// ############### Functions ThatYouDontNeed Begin ###############
+	int onSegment(SDL_FPoint p, SDL_FPoint q, SDL_FPoint r);
+	int orientation(SDL_FPoint p, SDL_FPoint q, SDL_FPoint r);
+	int doIntersect(SDL_FPoint p1, SDL_FPoint q1, SDL_FPoint p2, SDL_FPoint q2);
+	void CollideDynamicStatic(Rects::Dynamic* DynamicRect, Rects::Static* StaticRect);
+	void CollideDynamicKinematic(Rects::Dynamic* DynamicRect, Rects::Kinematic* KinematicRect, float gravity, GAMETYPE gametype);
+	void CollideDynamicDynamic(Rects::Dynamic* DynamicRect, Rects::Dynamic* DynamicRect2);
+	// ############### Functions ThatYouDontNeed End ###############
+	extern Physics::Rects::Dynamic* tmpD;
+	extern Physics::Rects::Dynamic* tmpD2;
+	extern Physics::Rects::Static* tmpS;
+	extern Physics::Rects::Kinematic* tmpK;
+}
+
+#endif
+// ############### Namespace Physics End ############### 
+// ############### Namespace AudioManager Begin ###############
 #ifdef AST_AUDIO
 namespace AudioManager {
-	extern std::vector<std::pair<Mix_Chunk*, std::string>> chunks;
-	extern std::vector<std::pair<Mix_Music*, std::string>> musics;
-	void play(std::string file, bool chunk = true);
-	void free();
+	extern std::unordered_map<std::string, Mix_Chunk*> Chunks;
+	extern std::unordered_map<std::string, Mix_Music*> Musics;
+	void Play(std::string file, bool chunk = true);
+	void Free();
 }
 #endif
+// ############### Namespace AudioManager End ###############
